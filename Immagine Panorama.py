@@ -2,17 +2,15 @@ import numpy as np
 import cv2
 import glob
 import imutils
-from PIL import Image
-from google.colab.patches import cv2_imshow
 
-image_paths = glob.glob("4/*.jpg")
+image_paths = glob.glob("images/*.jpg")
 images = []
 
 for image in image_paths:
     img = cv2.imread(image)
     images.append(img)
     # cv2_imshow(img)
-    # cv2.imshow(img)
+    cv2.imshow(img)
     cv2.waitKey(0)
 
 
@@ -24,8 +22,8 @@ if not error:
 
     cv2.imwrite("stitchedOutput.png", stitched_img)
     print("Stitched Img")
-    cv2_imshow(stitched_img)
-    # cv2.imshow("Stitched Img", stitched_img)
+    # cv2_imshow(stitched_img)
+    cv2.imshow("Stitched Img", stitched_img)
     cv2.waitKey(0)
 
 
@@ -37,8 +35,8 @@ if not error:
     thresh_img = cv2.threshold(gray, 0, 255 , cv2.THRESH_BINARY)[1]
 
     print("Threshold Image")
-    cv2_imshow(thresh_img)
-    # cv2.imshow("Threshold Image", thresh_img)
+    # cv2_imshow(thresh_img)
+    cv2.imshow("Threshold Image", thresh_img)
     cv2.waitKey(0)
 
     contours = cv2.findContours(thresh_img.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -64,8 +62,8 @@ if not error:
     areaOI = max(contours, key=cv2.contourArea)
 
     print("minRectangle Image")
-    cv2_imshow(minRectangle)
-    # cv2.imshow("minRectangle Image", minRectangle)
+    # cv2_imshow(minRectangle)
+    cv2.imshow("minRectangle Image", minRectangle)
     cv2.waitKey(0)
 
     x, y, w, h = cv2.boundingRect(areaOI)
@@ -75,8 +73,8 @@ if not error:
     cv2.imwrite("stitchedOutputProcessed.png", stitched_img)
 
     print("Stitched Image Processed")
-    cv2_imshow(stitched_img)
-    # cv2.imshow("Stitched Image Processed", stitched_img)
+    # cv2_imshow(stitched_img)
+    cv2.imshow("Stitched Image Processed", stitched_img)
 
     cv2.waitKey(0)
 
