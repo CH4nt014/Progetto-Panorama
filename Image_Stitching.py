@@ -63,7 +63,6 @@ if not error:
 
     # contniua a ciclare fin quando non ci saranno più pixel diversi da 0
     while cv2.countNonZero(sub) > 0:
-
         # erode la maschera rettangolare minima e sottrae l'immagine con soglia dalla maschera
         # in modo da poter conttare se ci sono pixel diversi da zero rimasti
         minRectangle = cv2.erode(minRectangle, None)
@@ -80,7 +79,6 @@ if not error:
     # cv2_imshow(minRectangle)
     cv2.imshow("minRectangle Image", minRectangle)
     cv2.waitKey(0)
-
 
     # usa la boundig box per estrarre l'immagine finale
     stitched_img = stitched_img[y:y + h, x:x + w]
