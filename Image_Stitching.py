@@ -23,10 +23,10 @@ error, stitched_img = imageStitcher.stitch(images)
 if not error:
 
     # salva l'immagine panoramica creata sul disco e la mostro
-    cv2.imwrite("stitchedOutput.png", stitched_img)
+    cv2.imwrite("immaginePanoramica.png", stitched_img)
     # print("Stitched Img")
     # cv2_imshow(stitched_img)
-    cv2.imshow("Stitched Img", stitched_img)
+    cv2.imshow("Immagine Panoramica", stitched_img)
     cv2.waitKey(0)
 
     # crea un bordo di 10 pixel che circonda l'immagine unita
@@ -41,8 +41,13 @@ if not error:
     # mostra l'effetto ottenuto
     # print("Threshold Image")
     # cv2_imshow(thresh_img)
-    cv2.imshow("Threshold Image", thresh_img)
+    cv2.imshow("Immagine Threshold", thresh_img)
     cv2.waitKey(0)
+
+    # applica chiusura e apertura per riempire buchi bianchi e neri
+    kernel = np.ones((5,5), np.uint8)
+    thresh_img = cv2.morphologyEx(thresh_img, cv2.MORPH_CLOSE, kernel)
+    thresh_img = cv2.morphologyEx(thresh_img, cv2.MORPH_OPEN, kernel)
 
     # trova tutti i bordi esterni nell'immagine di soglia, quindi trova
     # il contorno "più grande" che sarà il contorno dell'immagine unita
@@ -77,23 +82,22 @@ if not error:
     # mostra l'effetto ottenuto
     # print("minRectangle Image")
     # cv2_imshow(minRectangle)
-    cv2.imshow("minRectangle Image", minRectangle)
+    cv2.imshow("Immagine Min Rettangolo", minRectangle)
     cv2.waitKey(0)
 
     # usa la boundig box per estrarre l'immagine finale
     stitched_img = stitched_img[y:y + h, x:x + w]
 
     # salva l'immagine finale sul disco
-    cv2.imwrite("stitchedOutputProcessed.png", stitched_img)
+    cv2.imwrite("immaginePanoramicaProcessata.png", stitched_img)
 
     # mostra l'immagine finale
     # print("Stitched Image Processed")
     # cv2_imshow(stitched_img)
-    cv2.imshow("Stitched Image Processed", stitched_img)
+    cv2.imshow("Immagine panoramica processata", stitched_img)
     cv2.waitKey(0)
 
 
 # notifica se la creazione dell'immagine panoramica fallisce a causa di pochi keypoint
 else:
-    print("Images could not be stitched!")
-    print("Likely not enough keypoints being detected!")
+    print("L'immagine non può essere unita!\nPochi keypoint trovati")
