@@ -19,7 +19,7 @@ for image in image_paths:
 imageStitcher = cv2.Stitcher_create()
 error, stitched_img = imageStitcher.stitch(images)
 
-# Se non c'è errore OpneCV ha unito le immagini con successo
+# Se non c'è errore OpenCV ha unito le immagini con successo
 if not error:
 
     # salva l'immagine panoramica creata sul disco e la mostro
