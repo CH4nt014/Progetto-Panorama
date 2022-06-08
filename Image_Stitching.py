@@ -82,7 +82,7 @@ if not error:
     # mostra l'effetto ottenuto
     # print("minRectangle Image")
     # cv2_imshow(minRectangle)
-    cv2.imshow("Immagine Min Rettangolo", minRectangle)
+    cv2.imshow("Immagine Rettangolo Min", minRectangle)
     cv2.waitKey(0)
 
     # usa la boundig box per estrarre l'immagine finale
