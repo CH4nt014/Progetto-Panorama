@@ -18,7 +18,7 @@ for image in image_paths:
 imageStitcher = cv2.Stitcher_create()
 error, stitched_img = imageStitcher.stitch(images)
 
-# Se non c'è errore OpneCV ha unito le immagini con successo
+# Se non c'è errore OpenCV ha unito le immagini con successo
 if not error:
 
     # salva l'immagine panoramica creata sul disco e la mostro
@@ -31,9 +31,6 @@ if not error:
     # (background)
     gray = cv2.cvtColor(stitched_img, cv2.COLOR_BGR2GRAY)
     mask = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)[1]
-
-    # Seleziona il contorno
-    cont, _ = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
 
     # mostra l'effetto ottenuto
     cv2.drawContours(gray, cont, -1, (255, 0, 0), 1)
