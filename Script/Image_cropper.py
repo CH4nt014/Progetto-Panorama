@@ -84,7 +84,7 @@ if all_rect:
         # Finally, we crop the picture and store it
         result = input_picture[min(y1, y2):max(y1, y2), min(x1, x2):max(x1, x2)]
 
-        cv2.imwrite("immaginePanoramicaProcessata2.png", result)
+        cv2.imwrite("immaginePanoramicaProcessata.png", result)
         cv2.imshow("Immagine panoramica processata", result)
         cv2.waitKey(0)
     else:
