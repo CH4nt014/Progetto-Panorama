@@ -11,7 +11,6 @@ images = []
 for image in image_paths:
     img = cv2.imread(image)
     images.append(img)
-    # cv2_imshow(img)
     # cv2.imshow(img)
     cv2.waitKey(0)
 
@@ -24,80 +23,91 @@ if not error:
 
     # salva l'immagine panoramica creata sul disco e la mostro
     cv2.imwrite("immaginePanoramica.png", stitched_img)
-    # print("Stitched Img")
-    # cv2_imshow(stitched_img)
     cv2.imshow("Immagine Panoramica", stitched_img)
     cv2.waitKey(0)
-
-    # crea un bordo di 10 pixel che circonda l'immagine unita
-    stitched_img = cv2.copyMakeBorder(stitched_img, 10, 10, 10, 10, cv2.BORDER_CONSTANT, (0, 0, 0))
 
     # converte l'immagine unita in scala di grigi e crea una soglia in modo che tutti i pixel
     # maggiori di zero siano impostati a 255 (quelli in primo piano) mentre gli altri rimangono a 0
     # (background)
     gray = cv2.cvtColor(stitched_img, cv2.COLOR_BGR2GRAY)
-    thresh_img = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)[1]
+    mask = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)[1]
 
     # mostra l'effetto ottenuto
-    # print("Threshold Image")
-    # cv2_imshow(thresh_img)
-    cv2.imshow("Immagine Threshold", thresh_img)
+    cv2.drawContours(gray, cont, -1, (255, 0, 0), 1)
+    cv2.imshow("Immagine con i contorni", gray)
     cv2.waitKey(0)
 
-    # applica chiusura e apertura per riempire buchi bianchi e neri
-    kernel = np.ones((5,5), np.uint8)
-    thresh_img = cv2.morphologyEx(thresh_img, cv2.MORPH_CLOSE, kernel)
-    thresh_img = cv2.morphologyEx(thresh_img, cv2.MORPH_OPEN, kernel)
+    # trova tutti i punti del contorno
+    contour = cont[0].reshape(len(cont[0]), 2)
 
-    # trova tutti i bordi esterni nell'immagine di soglia, quindi trova
-    # il contorno "più grande" che sarà il contorno dell'immagine unita
-    # contours = cv2.findContours(thresh_img.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    contours = cv2.findContours(thresh_img.copy(), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
-    contours = imutils.grab_contours(contours)
-    ROI = max(contours, key=cv2.contourArea)
+    # assumiamo che un rettangolo con almeno due punti sul contorno dia dei risultati abbastanza buoni
+    # prendiamo tutti i possibili rettangoli che si basano su questa ipotesi
+    rect = []
 
-    # alloca memoria per la maschera che conterrà il riquadro di delimitazione rettangolare dell'area
-    # dell'immagine unita
-    mask = np.zeros(thresh_img.shape, dtype="uint8")
-    x, y, w, h = cv2.boundingRect(ROI)
-    cv2.rectangle(mask, (x, y), (x + w, y + h), 255, -1)
+    # aggiungo i rettangoli alla lista
+    for i in range(len(contour)):
+        x1, y1 = contour[i]
+        for j in range(len(contour)):
+            x2, y2 = contour[j]
+            area = abs(y2 - y1) * abs(x2 - x1)
+            rect.append(((x1, y1), (x2, y2), area))
 
-    # crea due copie della maschera: la prima serve da regione rettangolare minima
-    # la seconda serve per contare quanti pixel devono essere rimossi per ottenere il rettangolo minimo
-    minRectangle = mask.copy()
-    sub = mask.copy()
+    # il primo rettangolo di tutti i rettangoli ha l'area più grande,
+    # perciò è la migliore soluzione se fitta bene nell'immagine
+    all_rect = sorted(rect, key=lambda x: x[2], reverse=True)
 
-    # contniua a ciclare fin quando non ci saranno più pixel diversi da 0
-    while cv2.countNonZero(sub) > 0:
-        # erode la maschera rettangolare minima e sottrae l'immagine con soglia dalla maschera
-        # in modo da poter conttare se ci sono pixel diversi da zero rimasti
-        minRectangle = cv2.erode(minRectangle, None)
-        sub = cv2.subtract(minRectangle, thresh_img)
+    # prende il rettangolo più grande trovato, basato sul valore dell'area del rettangolo
+    # solo se i bordi del rettangolo non si trovano fuori dall'immagine, nella parte nera
 
-    # trova i contorni nella maschera ed estrae il rettangolo del selezione con coordinate (x, y)
-    contours = cv2.findContours(minRectangle.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1)
-    contours = imutils.grab_contours(contours)
-    ROI = max(contours, key=cv2.contourArea)
-    x, y, w, h = cv2.boundingRect(ROI)
+    # se la lista non è vuota
+    if all_rect:
 
-    # mostra l'effetto ottenuto
-    # print("minRectangle Image")
-    # cv2_imshow(minRectangle)
-    cv2.imshow("Immagine Rettangolo Min", minRectangle)
-    cv2.waitKey(0)
+        best_rect_found = False
+        index_rect = 0
+        nb_rect = len(all_rect)
 
-    # usa la boundig box per estrarre l'immagine finale
-    stitched_img = stitched_img[y:y + h, x:x + w]
+        # controlla se il rettangolo è una buona soluzione
+        while not best_rect_found and index_rect < nb_rect:
 
-    # salva l'immagine finale sul disco
-    cv2.imwrite("immaginePanoramicaProcessata.png", stitched_img)
+            rect = all_rect[index_rect]
+            (x1, y1) = rect[0]
+            (x2, y2) = rect[1]
 
-    # mostra l'immagine finale
-    # print("Stitched Image Processed")
-    # cv2_imshow(stitched_img)
-    cv2.imshow("Immagine panoramica processata", stitched_img)
-    cv2.waitKey(0)
+            valid_rect = True
 
+            # cerca un'area nera nel perimetro del rettangolo
+            x = min(x1, x2)
+            while x < max(x1, x2) + 1 and valid_rect:
+                # se trova dei pixel neri, allora parte del rettangolo è nera
+                # perciò elimina questo rettangolo
+                if mask[y1, x] == 0 or mask[y2, x] == 0: valid_rect = False
+                x += 1
+
+            y = min(y1, y2)
+            while y < max(y1, y2) + 1 and valid_rect:
+                if mask[y, x1] == 0 or mask[y, x2] == 0:
+                    valid_rect = False
+                y += 1
+
+            if valid_rect: best_rect_found = True
+            index_rect += 1
+
+        if best_rect_found:
+            cv2.rectangle(gray, (x1, y1), (x2, y2), (255, 0, 0), 1)
+            cv2.imshow("Is that rectangle ok?", gray)
+            cv2.waitKey(0)
+
+            # croppa l'immagine e la salva
+            result = stitched_img[min(y1, y2):max(y1, y2), min(x1, x2):max(x1, x2)]
+
+            cv2.imwrite("immaginePanoramicaProcessata.png", result)
+            cv2.imshow("Immagine panoramica processata", result)
+            cv2.waitKey(0)
+        else:
+            print("Nessun rettangolo si adatta bene all'immagine")
+
+    else:
+        print("Nessun rettangolo trovato")
 
 # notifica se la creazione dell'immagine panoramica fallisce a causa di pochi keypoint
 else:
