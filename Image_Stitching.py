@@ -32,6 +32,9 @@ if not error:
     gray = cv2.cvtColor(stitched_img, cv2.COLOR_BGR2GRAY)
     mask = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)[1]
 
+    # Seleziona il contorno
+    cont, _ = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+
     # mostra l'effetto ottenuto
     cv2.drawContours(gray, cont, -1, (255, 0, 0), 1)
     cv2.imshow("Immagine con i contorni", gray)
