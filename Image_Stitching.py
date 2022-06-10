@@ -51,7 +51,8 @@ if not error:
 
     # trova tutti i bordi esterni nell'immagine di soglia, quindi trova
     # il contorno "più grande" che sarà il contorno dell'immagine unita
-    contours = cv2.findContours(thresh_img.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # contours = cv2.findContours(thresh_img.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    contours = cv2.findContours(thresh_img.copy(), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
     contours = imutils.grab_contours(contours)
     ROI = max(contours, key=cv2.contourArea)
 
@@ -74,7 +75,7 @@ if not error:
         sub = cv2.subtract(minRectangle, thresh_img)
 
     # trova i contorni nella maschera ed estrae il rettangolo del selezione con coordinate (x, y)
-    contours = cv2.findContours(minRectangle.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = cv2.findContours(minRectangle.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1)
     contours = imutils.grab_contours(contours)
     ROI = max(contours, key=cv2.contourArea)
     x, y, w, h = cv2.boundingRect(ROI)
